@@ -34,7 +34,11 @@ export default class PetRepository {
 
   public readonly create = async (pet: CreatePetDTO): Promise<PetDTO> => {
     const newPet = await prisma.pet.create({
-      data: { ...pet, userId: this.userId }
+      data: {
+        ...pet,
+        birth: new Date(pet.birth).toISOString(),
+        userId: this.userId
+      }
     })
 
     return newPet
@@ -46,7 +50,10 @@ export default class PetRepository {
         id,
         userId: this.userId
       },
-      data: pet
+      data: {
+        ...pet,
+        birth: pet.birth ? new Date(pet.birth).toISOString() : undefined
+      }
     })
   }
 

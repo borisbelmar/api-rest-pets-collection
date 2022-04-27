@@ -47,10 +47,11 @@ export default class PetController {
       const newPet = await repository.create(pet)
       res.status(201).json(newPet)
     } catch (error) {
-      if (error.code = 'P2002') {
+      if (error.code === 'P2002') {
         res.status(409).json({ message: 'Pet already exists' })
         return
       }
+      console.log(error)
       res.status(500).json({ message: 'Something went wrong' })
     }
   }
@@ -72,10 +73,11 @@ export default class PetController {
       await repository.update(parseInt(id), pet)
       res.sendStatus(204)
     } catch (error) {
-      if (error.code = 'P2002') {
+      if (error.code === 'P2002') {
         res.status(409).json({ message: 'Pet already exists' })
         return
       }
+      console.log(error)
       res.status(500).json({ message: 'Something went wrong' })
     }
   }
