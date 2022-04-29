@@ -8,7 +8,7 @@ export default class PetController {
   public readonly getAll = async (req: Request, res: Response) => {
     try {
       const user = req.user as UserTokenPayload
-      const repository = new PetRepository(user.id)
+      const repository = new PetRepository(user.sub)
       const pets = await repository.findAll()
       res.json(pets)
     } catch(error) {
@@ -21,11 +21,16 @@ export default class PetController {
     const { id } = req.params
     
     const user = req.user as UserTokenPayload
-    const repository = new PetRepository(user.id)
+    const repository = new PetRepository(user.sub)
     const pet = await repository.findById(parseInt(id))
 
     if (!pet) {
       res.status(404).json({ message: 'Pet not found' })
+      return
+    }
+
+    if (pet.userId !== user.sub) {
+      res.status(403).json({ message: 'You dont have permissions' })
       return
     }
 
@@ -42,7 +47,7 @@ export default class PetController {
     }
 
     const user = req.user as UserTokenPayload
-    const repository = new PetRepository(user.id)
+    const repository = new PetRepository(user.sub)
     try {
       const newPet = await repository.create(pet)
       res.status(201).json(newPet)
@@ -68,8 +73,21 @@ export default class PetController {
     }
 
     const user = req.user as UserTokenPayload
-    const repository = new PetRepository(user.id)
+    const repository = new PetRepository(user.sub)
+    
     try {
+      const petFromDb = await repository.findById(parseInt(id))
+
+      if (!petFromDb) {
+        res.status(404).json({ message: 'Pet not found' })
+        return
+      }
+
+      if (petFromDb.userId !== user.sub) {
+        res.status(403).json({ message: 'You dont have permissions' })
+        return
+      }
+
       await repository.update(parseInt(id), pet)
       res.sendStatus(204)
     } catch (error) {
@@ -84,12 +102,29 @@ export default class PetController {
 
   public readonly delete = async (req: Request, res: Response) => {
     const { id } = req.params
-
+    
     const user = req.user as UserTokenPayload
-    const repository = new PetRepository(user.id)
+    const repository = new PetRepository(user.sub)
 
-    await repository.delete(parseInt(id))
+    try {
+      const petFromDb = await repository.findById(parseInt(id))
 
-    res.sendStatus(204)
+      if (!petFromDb) {
+        res.status(404).json({ message: 'Pet not found' })
+        return
+      }
+
+      if (petFromDb.userId !== user.sub) {
+        res.status(403).json({ message: 'You dont have permissions' })
+        return
+      }
+
+      await repository.delete(parseInt(id))
+
+      res.sendStatus(204)
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ message: 'Something went wrong' })
+    }
   }
 }

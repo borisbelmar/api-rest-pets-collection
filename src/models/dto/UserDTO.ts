@@ -18,7 +18,7 @@ export interface LoginUserDTO extends UserDTO {
 }
 
 export interface UserTokenPayload {
-  id: number
+  sub: number
   email: string
   exp: number
   iat: number
